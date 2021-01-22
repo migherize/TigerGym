@@ -1,0 +1,27 @@
+body{
+    color: hsl(45, 82%, 55%);;
+}
+#hero{
+    color: hsl(45, 82%, 55%);
+    background-image: url('../img/tiger.png');
+    background-size:cover;
+}
+.card1{
+   background-color: #363636;
+    height: 700px;
+    width: 800px;
+    margin-left: 100px;
+    margin-left: 0px;
+}
+.card form {
+    color: hsl(45, 82%, 55%);
+}
+label {
+    color: hsl(45, 82%, 55%);
+}
+
+#banner {
+    margin-top: 20px;
+    background-color:  #363636;
+}
+

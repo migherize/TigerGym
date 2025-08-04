@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Progress Bar - Flask App</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    {% block extra_css %}
+    <style>
+        body {
+            background: #10253f;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .main-container {
+            flex: 1 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 3rem;
+            min-height: 70vh;
+        }
+        .welcome-title {
+            font-size: 3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+        .welcome-subtitle {
+            font-size: 1.5rem;
+            color: #cfd8e3;
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            width: 100%;
+            margin-bottom: 3rem;
+        }
+        .feature-card {
+            background: #18345c;
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            border-color: #fff;
+        }
+        .feature-card.disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .feature-card.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: transparent;
+        }
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            color: #51cf66;
+        }
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .feature-description {
+            color: #cfd8e3;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+        }
+        .feature-button {
+            background: #51cf66;
+            color: #10253f;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+            transition: background 0.3s ease;
+        }
+        .feature-button:hover {
+            background: #40c057;
+            color: #10253f;
+            text-decoration: none;
+        }
+        .feature-button.disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .feature-button.disabled:hover {
+            background: #6c757d;
+        }
+        .coming-soon {
+            background: #ffc107;
+            color: #10253f;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 1rem;
+            display: inline-block;
+        }
+        .info-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 2rem;
+            max-width: 600px;
+            text-align: center;
+            margin-top: 2rem;
+        }
+        .info-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #51cf66;
+        }
+        .info-text {
+            color: #cfd8e3;
+            line-height: 1.6;
+        }
+
+        /* Custom Progress Bar Styles */
+        .progress-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .step-progress {
+            position: relative;
+            margin: 2rem 0;
+        }
+
+        .step-progress-line {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            right: 25px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            z-index: 1;
+        }
+
+        .step-progress-line-active {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            height: 4px;
+            background: #6f42c1;
+            z-index: 2;
+            transition: width 0.5s ease;
+        }
+
+        .step-item {
+            position: relative;
+            display: flex;
+            align-items: center;
+            margin-bottom: 3rem;
+            z-index: 3;
+        }
+
+        .step-circle {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-right: 2rem;
+            transition: all 0.3s ease;
+            position: relative;
+            z-index: 4;
+        }
+
+        .step-circle.completed {
+            background: #6f42c1;
+            color: white;
+            border: 3px solid #6f42c1;
+        }
+
+        .step-circle.current {
+            background: #6f42c1;
+            color: white;
+            border: 3px solid #6f42c1;
+            box-shadow: 0 0 0 4px rgba(111, 66, 193, 0.3);
+        }
+
+        .step-circle.pending {
+            background: transparent;
+            color: #cfd8e3;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: white;
+        }
+
+        .step-title.completed {
+            color: white;
+        }
+
+        .step-title.current {
+            color: #6f42c1;
+        }
+
+        .step-title.pending {
+            color: #cfd8e3;
+        }
+
+        .step-description {
+            color: #cfd8e3;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-container {
+                padding-top: 2rem;
+                min-height: 60vh;
+            }
+            .welcome-title {
+                font-size: 2.5rem;
+            }
+            .welcome-subtitle {
+                font-size: 1.2rem;
+                margin-bottom: 2rem;
+            }
+            .feature-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            .feature-card {
+                padding: 1.5rem;
+            }
+            .feature-icon {
+                font-size: 2.5rem;
+            }
+            .feature-title {
+                font-size: 1.3rem;
+            }
+            .progress-container {
+                padding: 1rem;
+            }
+            .step-circle {
+                width: 40px;
+                height: 40px;
+                margin-right: 1rem;
+                font-size: 1rem;
+            }
+            .step-title {
+                font-size: 1.2rem;
+            }
+            .step-description {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+    {% endblock %}
+
+    <div class="container-fluid">
+        <div class="main-container">
+            <!-- Progress Bar Container -->
+            <div class="progress-container">
+                <div class="step-progress">
+                    <!-- Progress Line Background -->
+                    <div class="step-progress-line"></div>
+                    <!-- Active Progress Line (25% for step 2 of 5) -->
+                    <div class="step-progress-line-active" style="width: 25%;"></div>
+                    
+                    <!-- Step 1: Create account (Completed) -->
+                    <div class="step-item">
+                        <div class="step-circle completed">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div class="step-content">
+                            <h3 class="step-title completed">Create account</h3>
+                            <p class="step-description">Vitae sed mi luctus laoreet.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 2: Profile information (Current) -->
+                    <div class="step-item">
+                        <div class="step-circle current">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="step-content">
+                            <h3 class="step-title current">Profile information</h3>
+                            <p class="step-description">Cursus semper viverra facilisis et et some more.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 3: Business information (Pending) -->
+                    <div class="step-item">
+                        <div class="step-circle pending">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="step-content">
+                            <h3 class="step-title pending">Business information</h3>
+                            <p class="step-description">Pendibus eu quis ante.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Theme (Pending) -->
+                    <div class="step-item">
+                        <div class="step-circle pending">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="step-content">
+                            <h3 class="step-title pending">Theme</h3>
+                            <p class="step-description">Faucibus nec enim leo et.</p>
+                        </div>
+                    </div>
+
+                    <!-- Step 5: Preview (Pending) -->
+                    <div class="step-item">
+                        <div class="step-circle pending">
+                            <i class="fas fa-circle"></i>
+                        </div>
+                        <div class="step-content">
+                            <h3 class="step-title pending">Preview</h3>
+                            <p class="step-description">Iusto et officia maiores porro ad non quas.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="d-flex justify-content-between w-100" style="max-width: 800px;">
+                <button class="btn btn-outline-light px-4 py-2">
+                    <i class="fas fa-arrow-left me-2"></i>Previous
+                </button>
+                <button class="btn px-4 py-2" style="background: #6f42c1; color: white;">
+                    Next<i class="fas fa-arrow-right ms-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- JavaScript for Progress Bar Animation -->
+    <script>
+        // Function to update progress bar
+        function updateProgressBar(currentStep, totalSteps) {
+            const progressLine = document.querySelector('.step-progress-line-active');
+            const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            progressLine.style.width = percentage + '%';
+            
+            // Update step circles and titles
+            const stepItems = document.querySelectorAll('.step-item');
+            stepItems.forEach((item, index) => {
+                const circle = item.querySelector('.step-circle');
+                const title = item.querySelector('.step-title');
+                const stepNumber = index + 1;
+                
+                if (stepNumber < currentStep) {
+                    // Completed step
+                    circle.className = 'step-circle completed';
+                    circle.innerHTML = '<i class="fas fa-check"></i>';
+                    title.className = 'step-title completed';
+                } else if (stepNumber === currentStep) {
+                    // Current step
+                    circle.className = 'step-circle current';
+                    circle.innerHTML = '<i class="fas fa-circle"></i>';
+                    title.className = 'step-title current';
+                } else {
+                    // Pending step
+                    circle.className = 'step-circle pending';
+                    circle.innerHTML = '<i class="fas fa-circle"></i>';
+                    title.className = 'step-title pending';
+                }
+            });
+        }
+
+        // Example: Set current step (2 out of 5)
+        updateProgressBar(2, 5);
+
+        // Example navigation functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            let currentStep = 2;
+            const totalSteps = 5;
+            
+            const prevButton = document.querySelector('.btn-outline-light');
+            const nextButton = document.querySelector('.btn:not(.btn-outline-light)');
+            
+            prevButton.addEventListener('click', function() {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateProgressBar(currentStep, totalSteps);
+                }
+            });
+            
+            nextButton.addEventListener('click', function() {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    updateProgressBar(currentStep, totalSteps);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

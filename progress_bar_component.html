@@ -1,0 +1,274 @@
+<!-- Progress Bar Component for Flask -->
+<!-- 
+    Usage in your Flask template:
+    {% include 'progress_bar_component.html' %}
+    
+    Or with custom parameters:
+    {% set steps = [
+        {'title': 'Create account', 'description': 'Vitae sed mi luctus laoreet.', 'status': 'completed'},
+        {'title': 'Profile information', 'description': 'Cursus semper viverra facilisis et et some more.', 'status': 'current'},
+        {'title': 'Business information', 'description': 'Pendibus eu quis ante.', 'status': 'pending'},
+        {'title': 'Theme', 'description': 'Faucibus nec enim leo et.', 'status': 'pending'},
+        {'title': 'Preview', 'description': 'Iusto et officia maiores porro ad non quas.', 'status': 'pending'}
+    ] %}
+    {% set current_step = 2 %}
+    {% include 'progress_bar_component.html' %}
+-->
+
+{% if not steps %}
+    {% set steps = [
+        {'title': 'Create account', 'description': 'Vitae sed mi luctus laoreet.', 'status': 'completed'},
+        {'title': 'Profile information', 'description': 'Cursus semper viverra facilisis et et some more.', 'status': 'current'},
+        {'title': 'Business information', 'description': 'Pendibus eu quis ante.', 'status': 'pending'},
+        {'title': 'Theme', 'description': 'Faucibus nec enim leo et.', 'status': 'pending'},
+        {'title': 'Preview', 'description': 'Iusto et officia maiores porro ad non quas.', 'status': 'pending'}
+    ] %}
+{% endif %}
+
+{% if not current_step %}
+    {% set current_step = 2 %}
+{% endif %}
+
+<style>
+    /* Custom Progress Bar Styles */
+    .progress-container {
+        max-width: 800px;
+        width: 100%;
+        margin: 2rem auto;
+        padding: 2rem;
+    }
+
+    .step-progress {
+        position: relative;
+        margin: 2rem 0;
+    }
+
+    .step-progress-line {
+        position: absolute;
+        top: 25px;
+        left: 25px;
+        right: 25px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.2);
+        z-index: 1;
+    }
+
+    .step-progress-line-active {
+        position: absolute;
+        top: 25px;
+        left: 25px;
+        height: 4px;
+        background: #6f42c1;
+        z-index: 2;
+        transition: width 0.5s ease;
+    }
+
+    .step-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        margin-bottom: 3rem;
+        z-index: 3;
+    }
+
+    .step-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        margin-right: 2rem;
+        transition: all 0.3s ease;
+        position: relative;
+        z-index: 4;
+    }
+
+    .step-circle.completed {
+        background: #6f42c1;
+        color: white;
+        border: 3px solid #6f42c1;
+    }
+
+    .step-circle.current {
+        background: #6f42c1;
+        color: white;
+        border: 3px solid #6f42c1;
+        box-shadow: 0 0 0 4px rgba(111, 66, 193, 0.3);
+    }
+
+    .step-circle.pending {
+        background: transparent;
+        color: #cfd8e3;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .step-content {
+        flex: 1;
+    }
+
+    .step-title {
+        font-size: 1.4rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: white;
+    }
+
+    .step-title.completed {
+        color: white;
+    }
+
+    .step-title.current {
+        color: #6f42c1;
+    }
+
+    .step-title.pending {
+        color: #cfd8e3;
+    }
+
+    .step-description {
+        color: #cfd8e3;
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .progress-container {
+            padding: 1rem;
+        }
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            margin-right: 1rem;
+            font-size: 1rem;
+        }
+        .step-title {
+            font-size: 1.2rem;
+        }
+        .step-description {
+            font-size: 0.9rem;
+        }
+    }
+</style>
+
+<!-- Progress Bar Container -->
+<div class="progress-container">
+    <div class="step-progress">
+        <!-- Progress Line Background -->
+        <div class="step-progress-line"></div>
+        <!-- Active Progress Line -->
+        {% set progress_percentage = ((current_step - 1) / (steps|length - 1)) * 100 %}
+        <div class="step-progress-line-active" style="width: {{ progress_percentage }}%;"></div>
+        
+        <!-- Steps -->
+        {% for step in steps %}
+            {% set loop_index = loop.index %}
+            <div class="step-item">
+                <div class="step-circle {{ step.status }}">
+                    {% if step.status == 'completed' %}
+                        <i class="fas fa-check"></i>
+                    {% else %}
+                        <i class="fas fa-circle"></i>
+                    {% endif %}
+                </div>
+                <div class="step-content">
+                    <h3 class="step-title {{ step.status }}">{{ step.title }}</h3>
+                    <p class="step-description">{{ step.description }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Navigation Buttons (Optional) -->
+{% if show_navigation is not defined or show_navigation %}
+<div class="d-flex justify-content-between w-100" style="max-width: 800px; margin: 0 auto;">
+    <button class="btn btn-outline-light px-4 py-2" id="prevStepBtn" 
+            {% if current_step <= 1 %}disabled{% endif %}>
+        <i class="fas fa-arrow-left me-2"></i>Previous
+    </button>
+    <button class="btn px-4 py-2" id="nextStepBtn" 
+            style="background: #6f42c1; color: white;"
+            {% if current_step >= steps|length %}disabled{% endif %}>
+        Next<i class="fas fa-arrow-right ms-2"></i>
+    </button>
+</div>
+{% endif %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Progress bar functionality
+        function updateProgressBar(currentStep, totalSteps) {
+            const progressLine = document.querySelector('.step-progress-line-active');
+            const percentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+            progressLine.style.width = percentage + '%';
+            
+            // Update step circles and titles
+            const stepItems = document.querySelectorAll('.step-item');
+            stepItems.forEach((item, index) => {
+                const circle = item.querySelector('.step-circle');
+                const title = item.querySelector('.step-title');
+                const stepNumber = index + 1;
+                
+                if (stepNumber < currentStep) {
+                    // Completed step
+                    circle.className = 'step-circle completed';
+                    circle.innerHTML = '<i class="fas fa-check"></i>';
+                    title.className = 'step-title completed';
+                } else if (stepNumber === currentStep) {
+                    // Current step
+                    circle.className = 'step-circle current';
+                    circle.innerHTML = '<i class="fas fa-circle"></i>';
+                    title.className = 'step-title current';
+                } else {
+                    // Pending step
+                    circle.className = 'step-circle pending';
+                    circle.innerHTML = '<i class="fas fa-circle"></i>';
+                    title.className = 'step-title pending';
+                }
+            });
+            
+            // Update navigation buttons
+            const prevBtn = document.getElementById('prevStepBtn');
+            const nextBtn = document.getElementById('nextStepBtn');
+            
+            if (prevBtn) {
+                prevBtn.disabled = currentStep <= 1;
+            }
+            if (nextBtn) {
+                nextBtn.disabled = currentStep >= totalSteps;
+            }
+        }
+
+        // Navigation functionality
+        let currentStep = {{ current_step }};
+        const totalSteps = {{ steps|length }};
+        
+        const prevButton = document.getElementById('prevStepBtn');
+        const nextButton = document.getElementById('nextStepBtn');
+        
+        if (prevButton) {
+            prevButton.addEventListener('click', function() {
+                if (currentStep > 1) {
+                    currentStep--;
+                    updateProgressBar(currentStep, totalSteps);
+                }
+            });
+        }
+        
+        if (nextButton) {
+            nextButton.addEventListener('click', function() {
+                if (currentStep < totalSteps) {
+                    currentStep++;
+                    updateProgressBar(currentStep, totalSteps);
+                }
+            });
+        }
+        
+        // Initialize
+        updateProgressBar(currentStep, totalSteps);
+    });
+</script>
